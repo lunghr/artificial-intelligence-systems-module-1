@@ -8,13 +8,15 @@
 
 ### Цель
 
-    Создание базы знаний в языке программирования Prolog и реализовывание набора запросов, используя созданную базу знаний. Получить и развить навыков работы с фактами, предикатами, и правилами в логическом программировании.
+> Создание базы знаний в языке программирования Prolog и реализовывание набора запросов, используя созданную базу
+> знаний. Получить и развить навыков работы с фактами, предикатами, и правилами в логическом программировании.
 
 ## Лабораторная работа №2
 
 ### Цель
 
-    Познакомиться со средой разработки онтологий Protege и перевод базы знаний, созданной в предыдущей лабораторной работе в онтологическую форму в Protege.
+> Познакомиться со средой разработки онтологий Protege и перевод базы знаний, созданной в предыдущей лабораторной работе
+> в онтологическую форму в Protege.
 
 ---
 
@@ -56,8 +58,6 @@
   которые соответствуют объектам и отношениям из базы знаний. Например, если у были классы "Человек" и "Машина" и
   свойство "возраст", создайте аналогичные классы и свойства в онтологии в Protege.
 
-</aside>
-
 ## Лабораторная работа №2
 
 ### Требования и задачи
@@ -96,13 +96,11 @@
 исполняемого файла Базы Знаний. В отдельном файле выписала `Запросы` , чтобы не забыть их
 
 
-> **Изначальная версия первой лабораторной работы *“слегка”*  изменилась, так как во второй мне потребовались
+> **Изначальная версия первой лабораторной работы *“слегка”* изменилась, так как во второй мне потребовались
 дополнительные факты и классы. Онтология строилась по первой версии Базы Знаний**
-
-*Далее представлена первая версия работы, как она была сдана. Вторая версия будет так же представлена ниже, но она так
+>
+>*Далее представлена первая версия работы, как она была сдана. Вторая версия будет так же представлена ниже, но она так
 же менялась, потому что во второй лабораторной работе не нужен был текстовый вывод строк*
-
-</aside>
 
 ### Prolog KB v 1.0.0
 
@@ -450,31 +448,31 @@ print_all_friends([Person | Rest]) :-
 
 1. Bachelors
 
-   ![image.png](assets/image 1.png)
+   ![image.png](assets/image_1.png)
 
 2. Bachelorettes
 
-   ![image.png](assets/image 2.png)
+   ![image.png](assets/image_2.png)
 
 3. Married
 
-   ![image.png](assets/image 3.png)
+   ![image.png](assets/image_3.png)
 
 4. Child
 
-   ![image.png](assets/image 4.png)
+   ![image.png](assets/image_4.png)
 
 ### Свойства объектов (правила)
 
-![image.png](assets/image 5.png)
+![image.png](assets/image_5.png)
 
 ### Итоговый граф
 
-![image.png](assets/image 6.png)
+![image.png](assets/image_6.png)
 
-![image.png](assets/image 7.png)
+![image.png](assets/image_7.png)
 
-![image.png](assets/image 8.png)
+![image.png](assets/image_8.png)
 
 ---
 
@@ -788,69 +786,69 @@ true.
 
 ### `initialization -> help command`
 
-![image.png](assets/image 9.png)
+![image.png](assets/image_9.png)
 
 ### `list all residents`
 
-![image.png](assets/image 10.png)
+![image.png](assets/image_10.png)
 
 ### `list gifts`
 
-![image.png](assets/image 11.png)
+![image.png](assets/image_11.png)
 
 ### `list all friends`
 
-![image.png](assets/image 12.png)
+![image.png](assets/image_12.png)
 
 ### `friends of <resident>`
 
-![image.png](assets/image 13.png)
+![image.png](assets/image_13.png)
 
 ### `make friends <resident> <resident>`
 
-![image.png](assets/image 14.png)
+![image.png](assets/image_14.png)
 
 ### `residents by <age> | <gender> | <name> <argument>`
 
-![image.png](assets/image 15.png)
+![image.png](assets/image_15.png)
 
 ### `spouse of <resident>`
 
-![image.png](assets/image 16.png)
+![image.png](assets/image_16.png)
 
 ### `all spouses`
 
-![image.png](assets/image 17.png)
+![image.png](assets/image_17.png)
 
 ### `children of <resident>`
 
-![image.png](assets/image 18.png)
+![image.png](assets/image_18.png)
 
 ### `parents of <resident>`
 
-![image.png](assets/image 19.png)
+![image.png](assets/image_19.png)
 
 ### `siblings of <resident>`
 
-![image.png](assets/image 20.png)
+![image.png](assets/image_20.png)
 
 ### `gave gift from <resident> to <resident>`
 
 - **ruin friendship**
 
-  ![image.png](assets/image 21.png)
+  ![image.png](assets/image_21.png)
 
 - **level up friendship**
 
-  ![image.png](assets/image 22.png)
+  ![image.png](assets/image_22.png)
 
 - **command exceptions validation**
 
-  ![image.png](assets/image 23.png)
+  ![image.png](assets/image_23.png)
 
 ### `exit`
 
-![image.png](assets/image 24.png)
+![image.png](assets/image_24.png)
 
 ---
 
