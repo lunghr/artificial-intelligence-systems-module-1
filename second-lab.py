@@ -1,6 +1,4 @@
 import textwrap
-
-from sqlalchemy.util import ellipses_string
 from swiplserver import PrologMQI
 from colorama import init, Fore, Style
 
@@ -45,12 +43,29 @@ HELP = (
     " 13. 'help' or 'h' - to display this message\n"
     " 14. 'exit' - to exit the program")
 
-
 # helper functions
+
+def display_error_message(message, persons):
+    for i in persons:
+        message = message.replace("_name_", f"{HIGHLIGHT}{i}{RESET}{RED}", 1)
+    print(f"{RED_SEPARATOR}\n{RED} {message}\n{SEPARATOR}\n")
+
+def display_warning_message(message, persons):
+    for i in persons:
+        message = message.replace("_name_", f"{HIGHLIGHT}{i}{RESET}{YELLOW}", 1)
+    print(f"{YELLOW_SEPARATOR}\n{YELLOW} {message}\n{SEPARATOR}\n")
+
+def display_success_message(message, persons):
+    for i in persons:
+        message = message.replace("_name_", f"{HIGHLIGHT}{i}{RESET}{GREEN}", 1)
+    print(f"{GREEN_SEPARATOR}\n{GREEN} {message}\n{GREEN_SEPARATOR}\n")
+
 def display_not_found_message(person):
     person = " ".join(person.split(" ", 2)[2:]) if len(person.split()) > 1 else person
     print(f"{RED_SEPARATOR}\n Resident {HIGHLIGHT}{person}{RESET}{RED} not found.\n{SEPARATOR}\n")
 
+def make_string(list, key):
+    return f"{GREEN} and {RESET}{HIGHLIGHT}".join(person[key] for person in list)
 
 def unknown_command():
     print(f"{RED_SEPARATOR}\n {BOLD}{RED}Unknown command.{RESET} Please, type 'help' or 'h' to see available commands."
@@ -71,11 +86,13 @@ def print_table(criteria, residents_list):
         print(f" {COLUMN_SEPARATOR} {HEADER_STYLE}{id}{Style.RESET_ALL} {COLUMN_SEPARATOR} {name} {COLUMN_SEPARATOR}")
     print(f" {HALF_GREEN_TABLE_SEPARATOR}\n")
 
+
 # wrapper for fixed width output
 def line_wrap(message):
     wrapped_lines = [textwrap.fill(line, width=96) for line in message.split('\n')]
     for wrapped_line in wrapped_lines:
         print(wrapped_line)
+
 
 # greeting function
 def greeting():
@@ -185,20 +202,13 @@ def make_friends(prolog_thread, command):
     elif not person_2:
         display_not_found_message(friends[1])
     elif prolog_thread.query(f"friend('{friends[0]}', '{friends[1]}')."):
-        print(f"{Fore.YELLOW}{SEPARATOR}\n Residents {Style.BRIGHT}{Fore.LIGHTWHITE_EX}{friends[0]}{Style.NORMAL}"
-              f"{Fore.YELLOW} and {Style.BRIGHT}{Fore.LIGHTWHITE_EX}{friends[1]}{Style.NORMAL}{Fore.YELLOW} "
-              f"are already friends.\n{SEPARATOR}\n")
+        display_warning_message("Residents _name_ and _name_ are already friends.", friends)
     else:
         are_friends_now = prolog_thread.query(f"make_friends('{friends[0]}', '{friends[1]}').")
         if are_friends_now:
-            print(f"{Fore.GREEN}{SEPARATOR}\n Residents {Style.BRIGHT}{Fore.LIGHTWHITE_EX}{friends[0]}"
-                  f"{Style.NORMAL}{Fore.GREEN} and {Style.BRIGHT}{Fore.LIGHTWHITE_EX}{friends[1]}{Style.NORMAL}"
-                  f"{Fore.GREEN} are now friends!\n{SEPARATOR}\n")
+            display_success_message(" Residents _name_ and _name_ are friends now!", friends)
         else:
-            print(f"{Fore.RED}{SEPARATOR}\n Something went wrong. Residents "
-                  f"{Style.BRIGHT}{Fore.LIGHTWHITE_EX}{friends[0]}{Style.NORMAL}{Fore.RED} "
-                  f"and {Style.BRIGHT}{Fore.LIGHTWHITE_EX}{friends[0]}{Style.NORMAL}{Fore.RED}"
-                  f" are not friends.\n{SEPARATOR}\n")
+            display_error_message("Something went wrong. Residents _name_ and _name_ are not friends.", friends)
 
 
 def get_residents_by(prolog_thread, command):
@@ -206,8 +216,7 @@ def get_residents_by(prolog_thread, command):
     valid_criteria = {'age', 'gender', 'name'}
 
     if criteria[0] not in valid_criteria:
-        print(f"{RED_SEPARATOR}\n {BOLD}Invalid criteria.{RESET} Please, use <help> or <list all residents> "
-              f"command\n{RED_SEPARATOR}\n")
+        unknown_command()
         return
 
     query = ""
@@ -222,14 +231,12 @@ def get_residents_by(prolog_thread, command):
 
     if not residents_list:
         if criteria[0] == 'name':
-            print(f"{RED_SEPARATOR}\n Resident {HIGHLIGHT}{criteria[1]}{RESET}{RED} not found.\n{SEPARATOR}\n")
+            display_error_message(f" Resident _name_ not found.", [criteria[1]])
         else:
-            print(
-                f"{RED_SEPARATOR}\n Residents with {criteria[0]} {HIGHLIGHT}{criteria[1]}{RESET}{RED} not found.\n{SEPARATOR}\n")
+            display_error_message(f" Residents with {criteria[0]} _name_ not found.", [criteria[1]])
         return
-
     if criteria[0] == 'name':
-        print(f"{GREEN_SEPARATOR}\n Resident {HIGHLIGHT}{criteria[1]}{RESET}{GREEN} exists!\n{SEPARATOR}\n")
+        display_success_message(f" Resident _name_ exists!", [criteria[1]])
     else:
         print_table(criteria, residents_list)
 
@@ -239,10 +246,9 @@ def spouse_of(prolog_thread, command):
     if prolog_thread.query(f"resident('{person}', _, _).") and person:
         spouse = prolog_thread.query(f"spouse('{person}', Spouse).")
         if spouse:
-            print(f"{GREEN_SEPARATOR}\n {HIGHLIGHT}{person}{RESET}{GREEN} is married to "
-                  f"{HIGHLIGHT}{spouse[0]['Spouse']}.\n{GREEN_SEPARATOR}\n")
+            display_success_message(f"_name_ is married to _name_.", [person, spouse[0]['Spouse']])
         else:
-            print(f"{YELLOW_SEPARATOR}\n {HIGHLIGHT}{person}{RESET}{YELLOW} is not married yet.\n{SEPARATOR}\n")
+            display_warning_message(f"_name_ is not married yet.", [person])
     else:
         display_not_found_message(command)
 
@@ -262,11 +268,10 @@ def children_of(prolog_thread, command):
     if prolog_thread.query(f"resident('{person}', _, _).") and person:
         children = prolog_thread.query(f"parents('{person}', Child).")
         if children:
-            children_list = f"{GREEN} and {RESET}{HIGHLIGHT}".join(child['Child'] for child in children)
-            print(
-                f"{GREEN_SEPARATOR}\n {HIGHLIGHT}{person}{RESET}{GREEN} has children: {HIGHLIGHT}{children_list}{RESET}\n {GREEN_SEPARATOR}\n")
+            children_list = make_string(children, 'Child')
+            display_success_message(f"_name_ has children: _name_.", [person, children_list])
         else:
-            print(f"{YELLOW_SEPARATOR}\n {HIGHLIGHT}{person}{RESET}{YELLOW} has no children yet.\n{SEPARATOR}\n")
+            display_warning_message(f"_name_ has no children yet.", [person])
     else:
         display_not_found_message(command)
 
@@ -276,12 +281,10 @@ def parents_of(prolog_thread, command):
     if prolog_thread.query(f"resident('{child}', _, _).") and child:
         children = prolog_thread.query(f"children('{child}', Parent).")
         if children:
-            children_list = f"{GREEN} and {RESET}{HIGHLIGHT}".join(child['Parent'] for child in children)
-            print(
-                f"{GREEN_SEPARATOR}\n {HIGHLIGHT}{child}{RESET}{GREEN} is a child of {HIGHLIGHT}{children_list}{RESET}\n {GREEN_SEPARATOR}\n")
+            parents_list = make_string(children, 'Parent')
+            display_success_message(f"_name_ is a child of _name_.", [child, parents_list])
         else:
-            print(
-                f"{YELLOW_SEPARATOR}\n {HIGHLIGHT}{child}{RESET}{YELLOW} has no parents in Pelican Town.\n{SEPARATOR}\n")
+            display_warning_message(f"_name_ has no parents in Pelican Town.", [child])
     else:
         display_not_found_message(command)
 
@@ -291,15 +294,13 @@ def siblings_of(prolog_thread, command):
     if prolog_thread.query(f"resident('{person}', _, _).") and person:
         sibling = prolog_thread.query(f"siblings('{person}', Sibling).")
         if sibling:
-            print(
-                f"{GREEN_SEPARATOR}\n {HIGHLIGHT}{person}{RESET}{GREEN} is a sibling of {HIGHLIGHT}{sibling[0]['Sibling']}{RESET}\n {GREEN_SEPARATOR}\n")
+            display_success_message(f"_name_ has a sibling: _name_.", [person, sibling[0]['Sibling']])
         else:
-            print(
-                f"{YELLOW_SEPARATOR}\n {HIGHLIGHT}{person}{RESET}{YELLOW} has no siblings in Pelican Town.\n{SEPARATOR}\n")
+            display_warning_message(f"_name_ has no siblings in Pelican Town.", [person])
     else:
         display_not_found_message(command)
 
-
+# TO-DO they are not friends!!
 def gave_gift(prolog_thread, command):
     if len(command.split()) != 6:
         unknown_command()
@@ -308,7 +309,7 @@ def gave_gift(prolog_thread, command):
     giver = command.split()[3]
     receiver = command.split()[5]
     if giver == receiver:
-        print(f"{RED_SEPARATOR}\n {HIGHLIGHT}{giver}{RESET}{RED} can't give a gift to himself.\n{SEPARATOR}\n")
+        display_error_message(f"_name_ can't give a gift to himself.", [giver])
         return False
 
     if (prolog_thread.query(f"resident('{giver}', _, _).") and prolog_thread.query(f"resident('{receiver}', _, _).")):
@@ -318,21 +319,19 @@ def gave_gift(prolog_thread, command):
         print(f"{BLUE_SEPARATOR}\n")
         if prolog_thread.query(f"gave_gift('{giver}', '{receiver}', '{gift}')."):
             friendship_level = prolog_thread.query(f"friendship_level('{giver}', '{receiver}', Level).")[0]
-            friends_status = prolog_thread.query(f"check_friendship_status('{giver}', '{receiver}',{friendship_level['Level']}).")
+            friends_status = prolog_thread.query(
+                f"check_friendship_status('{giver}', '{receiver}',{friendship_level['Level']}).")
             if friends_status:
-                print(f"{GREEN_SEPARATOR}\n {HIGHLIGHT}{giver}{RESET}{GREEN} gave {HIGHLIGHT}{gift}{RESET}{GREEN} to "
-                      f"{HIGHLIGHT}{receiver}{RESET}{GREEN}! Friendship level: {HIGHLIGHT}{friendship_level['Level']}"
-                      f"{RESET}{GREEN}.\n{GREEN_SEPARATOR}\n")
+                display_success_message(f"_name_ gave _name_ to _name_! Friendship level: _name_",
+                                        [giver, gift, receiver, friendship_level['Level']])
             else:
-                print(f"{YELLOW_SEPARATOR}")
-                message = (f" {HIGHLIGHT}{giver}{RESET}{YELLOW} gave {HIGHLIGHT}{gift}"
-                           f"{RESET}{YELLOW} to {HIGHLIGHT}{receiver}{RESET}{YELLOW}!\n Their friendship level "
-                           f"is not high enough.\n {HIGHLIGHT}{giver}{RESET}{YELLOW} and {HIGHLIGHT}{receiver}"
-                           f"{RESET}{YELLOW} not friends anymore {HIGHLIGHT}:(")
-                line_wrap(message)
-                print(f"{YELLOW_SEPARATOR}\n")
+                display_warning_message(
+                    f" _name_ gave _name_ to _name_! Their friendship level is not high enough.\n "
+                    f"_name_ and _name_ not friends anymore :(",
+                    [giver, gift, receiver, giver, receiver])
+
         else:
-            print(f"{RED_SEPARATOR}\n Gift {HIGHLIGHT}'{gift}'{RESET}{RED} not found.\n{SEPARATOR}\n")
+            display_error_message(f"Gift _name_ not found.", [gift])
     else:
         display_not_found_message(giver if not prolog_thread.query(f"resident('{giver}', _, _).") else receiver)
 

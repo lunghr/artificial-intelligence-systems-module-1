@@ -31,3 +31,6 @@ with (PrologMQI() as mqi):
         result = list_gifts()
         for item in result:
             print(f'Gift: {item["X"]}, Effect: {item["Y"]}')
+
+
+
