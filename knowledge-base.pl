@@ -44,27 +44,27 @@ resident(shane, male, adult).
 resident(vincent, male, child).
 
 % Spouses class
-spouse(kent, jodi).
-spouse(demetrius, robin).
-spouse(caroline, pierre).
-spouse(evelyn, george).
-spouse(marnie, lewis).
+spouse_canon(kent, jodi).
+spouse_canon(demetrius, robin).
+spouse_canon(caroline, pierre).
+spouse_canon(evelyn, george).
+spouse_canon(marnie, lewis).
 
 % Parents class
-parent(kent, sam).
-parent(kent, vincent).
-parent(jodi, sam).
-parent(jodi, vincent).
-parent(robin, sebastian).
-parent(robin, maru).
-parent(demetrius, maru).
-parent(caroline, abigail).
-parent(pierre, abigail).
-parent(pam, penny).
-parent(lewis, alex).
-parent(marnie, alex).
-parent(evelyn, marnie).
-parent(george, marnie).
+parents(kent, sam).
+parents(kent, vincent).
+parents(jodi, sam).
+parents(jodi, vincent).
+parents(robin, sebastian).
+parents(robin, maru).
+parents(demetrius, maru).
+parents(caroline, abigail).
+parents(pierre, abigail).
+parents(pam, penny).
+parents(lewis, alex).
+parents(marnie, alex).
+parents(evelyn, marnie).
+parents(george, marnie).
 
 
 friend(abigail, haley).
@@ -92,61 +92,63 @@ gift_effect(diamond, 5).
 
 % rules
 
-child(C, P) :- parent(P, C).
-grandparent(G, C) :- parent(G, P), parent(P, C).
-spouse(X, Y) :- Y @< X, spouse(Y, X), !.
+children(C, P) :- parents(P, C).
+grandparents(G, C) :- parents(G, P), parents(P, C).
+spouse(X, Y) :- (spouse_canon(X, Y); spouse_canon(Y, X)), !.
+
 
 step-siblings(S1, S2):-
-	parent(P1, S1),  
-	spouse(P1, P2),  
-    parent(P2, S2), 
-	S1 \= S2,       
-    P1 \= P2, 	
-	not(parent(P2,S1)).
+	parents(P1, S1),
+	spouse(P1, P2),
+    parents(P2, S2),
+	S1 \= S2,
+    P1 \= P2,
+	not(parents(P2,S1)).
+
 
 siblings(X, Y) :-
-    parent(Z, X),
-    parent(Z, Y), 
-	Y \= X.    
+    parents(Z, X),
+    parents(Z, Y),
+	Y \= X.
 
 residents_by_age(N, A) :- resident(N, _, A).
 residents_by_sex(N, S) :- resident(N, S, _).
+list_all_residents :- findall((N, S, A), resident(N, S, A), Residents), Residents.
 
 
 
 make_friends(Person1, Person2) :-
-    ( Person1 \= Person2, (friend(Person1, Person2) ; friend(Person2, Person1))  
-    ->  write(Person1), write(' и '), write(Person2), write(' уже друзья!'), nl
-    ;   assertz(friend(Person1, Person2)),  
-        assertz(friend(Person2, Person1)),
-        write(Person1), write(' и '), write(Person2), write(' теперь друзья!'), nl
-    ).
+    ((friend(Person1, Person2) ; friend(Person2, Person1))
+    ->  false
+    ;( Person1 = Person2 -> false
+       ;
+       assertz(friend(Person1, Person2)),
+       assertz(friend(Person2, Person1)),
+       assertz(friendship_level(Person1, Person2, 0)),
+       assertz(friendship_level(Person2, Person1, 0))
+    )).
 
 
 
 gave_gift(Person, Friend, Gift) :-
-    ((friend(Person, Friend); friend(Friend, Person)) -> 
         (gift_effect(Gift, Effect) ->
-            % Обновляем уровень дружбы
             friendship_level(Person, Friend, CurrentLevel),
             NewLevel is CurrentLevel + Effect,
             clamp_friendship(NewLevel, ClampedLevel),
             retract(friendship_level(Person, Friend, CurrentLevel)),
             retract(friendship_level(Friend, Person, CurrentLevel)),
             assertz(friendship_level(Person, Friend, ClampedLevel)),
-            assertz(friendship_level(Friend, Person, ClampedLevel)),
-            check_friendship_status(Person, Friend, ClampedLevel)
+            assertz(friendship_level(Friend, Person, ClampedLevel))
             ;
-            write('Подарка '), write(Gift), write(' не существует.'), nl
-        );  write(Person), write(' и '), write(Friend), write(' не друзья!'), nl
-    ).
+            false
+            ).
 
 
 clamp_friendship(Level, ClampedLevel) :-
     max_friendship_level(Max),
     min_friendship_level(Min),
-    (Level > Max -> ClampedLevel = Max; 
-     Level < Min -> ClampedLevel = Min; 
+    (Level > Max -> ClampedLevel = Max;
+     Level < Min -> ClampedLevel = Min;
      ClampedLevel = Level).
 
 
@@ -157,27 +159,21 @@ check_friendship_status(Person, Friend, Level) :-
     retract(friend(Friend, Person)),
     retract(friendship_level(Person, Friend, Level)),
     retract(friendship_level(Friend, Person, Level)),
-    write(Person), write(' и '), write(Friend), write(' больше не друзья!'), nl.
+    false.
 
 check_friendship_status(Person, Friend, Level) :-
+    Person \= Friend,
     max_friendship_level(Max),
     min_friendship_level(Min),
-    Level > Min, Level =< Max, !,
-    write(Person), write(' и '), write(Friend), write(' друзья! Уровень дружбы: '), write(Level), nl.
+    Level > Min, Level =< Max, !.
+
 
 check_friendship(Person, Friend) :-
     (friendship_level(Person, Friend, Level) ->  write(Person), write(' и '), write(Friend), write(' друзья! Уровень дружбы: '), write(Level), nl ;
-    write(Person), write(' и '), write(Friend), write(' не друзья!'), nl).
+    false).
 
-
-list_gifts :-
-    findall((Gift, Effect), gift_effect(Gift, Effect), GiftEffects),
-    (   GiftEffects \= []
-    ->  write('Список всех подарков и их эффектов:'), nl,
-        print_gift_effects(GiftEffects)
-    ;   write('Нет доступных подарков.'), nl
-    ).
-
+list_gifts(GiftEffects) :-
+    findall([Gift, Effect], gift_effect(Gift, Effect), GiftEffects).
 
 print_gift_effects([]).
 print_gift_effects([(Gift, Effect)|Rest]) :-
@@ -187,7 +183,7 @@ print_gift_effects([(Gift, Effect)|Rest]) :-
 
 
 list_friends(Person) :-
-    findall(Friend, friend(Person, Friend), Friends), 
+    findall(Friend, friend(Person, Friend), Friends),
     (Friends = [] ->
         write(Person), write(' не имеет друзей.'), nl
         ;
@@ -204,12 +200,11 @@ write_list([H|T]) :-
 
 
 list_all_friends :-
-    findall(Person, resident(Person, _, _), Residents),
-    print_all_friends(Residents), !.
+    findall(Person, resident(Person, _, _), Residents), write(Residents).
 
 
 print_all_friends([]).
 print_all_friends([Person | Rest]) :-
-    list_friends(Person),  
-    print_all_friends(Rest).  
+    list_friends(Person),
+    print_all_friends(Rest).
 % spouse(A, B) :- (B @< A -> spouse(B, A), !, true).
