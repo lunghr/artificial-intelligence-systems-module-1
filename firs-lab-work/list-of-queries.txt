@@ -1,0 +1,23 @@
+% simple queries
+
+married("Caroline").           % Check if Caroline is married.
+bachelorette("Haley").         % Check if Haley is a bachelorette.
+child("Jas").                  % Check if Jas is a child.
+
+
+% also simple queries but with logical operators (they are also used in the rules) 
+
+married(X), bachelor(Y).         % Find a married character and a bachelor.
+\+ bachelor("Elliott").          % Check if Elliott is not a bachelor.
+
+% queries using variables
+
+married(X).                  % Find all married characters.
+parent("Kent", Y).           % Find children of Kent.
+
+
+% queries using rules
+bachelor(Y),parent(X, Y),divorced(X).                 % Find bachelors with divorced parents
+siblings("Sam", Y).          % Find siblings of Sam.
+spouse(X, Y),parent(X, Z),half_siblings(Z, H). - %Find family with step-childre
+spouse(X, Y),parent(X, Z),siblings(Z, H). - %Find family with relative siblings

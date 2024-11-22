@@ -3,13 +3,12 @@ from swiplserver import PrologMQI
 from colorama import init, Fore, Style
 
 '''
- Development part of the project
+ Usable constants
 '''
 
 # colorama initialization
 init(autoreset=True)
 
-# usable constants
 SEPARATOR = "~" * 96
 TABLE_SEPARATOR = "-" * 48
 GREEN_SEPARATOR = f"{Fore.GREEN}{SEPARATOR}"
@@ -43,35 +42,50 @@ HELP = (
     " 13. 'help' or 'h' - to display this message\n"
     " 14. 'exit' - to exit the program")
 
-# helper functions
+'''
+ Helper functions
+'''
 
+
+# function for displaying error message
 def display_error_message(message, persons):
     for i in persons:
         message = message.replace("_name_", f"{HIGHLIGHT}{i}{RESET}{RED}", 1)
     print(f"{RED_SEPARATOR}\n{RED} {message}\n{SEPARATOR}\n")
 
+
+# function for displaying warning message
 def display_warning_message(message, persons):
     for i in persons:
         message = message.replace("_name_", f"{HIGHLIGHT}{i}{RESET}{YELLOW}", 1)
     print(f"{YELLOW_SEPARATOR}\n{YELLOW} {message}\n{SEPARATOR}\n")
 
+
+# function for displaying success message
 def display_success_message(message, persons):
     for i in persons:
         message = message.replace("_name_", f"{HIGHLIGHT}{i}{RESET}{GREEN}", 1)
     print(f"{GREEN_SEPARATOR}\n{GREEN} {message}\n{GREEN_SEPARATOR}\n")
 
+
+# function for displaying not found message
 def display_not_found_message(person):
     person = " ".join(person.split(" ", 2)[2:]) if len(person.split()) > 1 else person
     print(f"{RED_SEPARATOR}\n Resident {HIGHLIGHT}{person}{RESET}{RED} not found.\n{SEPARATOR}\n")
 
+
+# function for making string from list of dicts
 def make_string(list, key):
     return f"{GREEN} and {RESET}{HIGHLIGHT}".join(person[key] for person in list)
 
+
+# function for displaying unknown command message
 def unknown_command():
     print(f"{RED_SEPARATOR}\n {BOLD}{RED}Unknown command.{RESET} Please, type 'help' or 'h' to see available commands."
           f"\n{RED_SEPARATOR}\n")
 
 
+# function for displaying table with residents
 def print_table(criteria, residents_list):
     criteria_name = criteria[0]
     print(f"{GREEN_SEPARATOR}\n")
@@ -106,12 +120,19 @@ def greeting():
     print(Fore.GREEN + SEPARATOR, "\n")
 
 
+'''
+  Functions for handling commands
+'''
+
+
+# function for displaying available commands
 def h(prolog_thread):
     print(Fore.GREEN + SEPARATOR)
     print(Style.BRIGHT + Fore.GREEN + " Available commands:\n" + Style.RESET_ALL + HELP)
     print(Fore.GREEN + SEPARATOR + "\n")
 
 
+# function for listing all residents in knowledge base
 def list_all_residents(prolog_thread):
     residents_list = prolog_thread.query(f"resident(Name, Gender, Age).")
     print(f"{Fore.GREEN}{Style.BRIGHT} Residents of Pelican Town:\n"
@@ -129,6 +150,7 @@ def list_all_residents(prolog_thread):
     print(f"{GREEN_TABLE_SEPARATOR}\n")
 
 
+# function for listing all available gifts in knowledge base
 def list_gifts(prolog_thread):
     gifts_list = prolog_thread.query(f"gift_effect(Gift, Effect).")
     print(f"{Fore.GREEN}{Style.BRIGHT} Available gifts  and their effects:\n"
@@ -149,6 +171,7 @@ def list_gifts(prolog_thread):
     print(f"{Fore.GREEN} {TABLE_SEPARATOR}\n")
 
 
+# function for listing all friendships in knowledge base
 def list_all_friends(prolog_thread):
     residents = prolog_thread.query(f"resident(Name, _, _).")
     print(f"{Fore.GREEN}{Style.BRIGHT} All friendships in Pelican Town:\n"
@@ -175,6 +198,7 @@ def list_all_friends(prolog_thread):
     print(f"{Fore.GREEN} {TABLE_SEPARATOR}\n")
 
 
+# function for listing friends of a specific resident
 def list_friends_of(prolog_thread, command):
     person = command.split(" ")[-1]
     if prolog_thread.query(f"resident('{person}', _, _)."):
@@ -193,28 +217,34 @@ def list_friends_of(prolog_thread, command):
         display_not_found_message(person)
 
 
+# function for making two residents friends
 def make_friends(prolog_thread, command):
     friends = command.split(" ")[2:]
     person_1 = prolog_thread.query(f"resident('{friends[0]}', _, _).")
     person_2 = prolog_thread.query(f"resident('{friends[1]}', _, _).")
+    # check if residents exist
     if not person_1:
         display_not_found_message(friends[0])
     elif not person_2:
         display_not_found_message(friends[1])
+    # check if residents are already friends
     elif prolog_thread.query(f"friend('{friends[0]}', '{friends[1]}')."):
         display_warning_message("Residents _name_ and _name_ are already friends.", friends)
     else:
         are_friends_now = prolog_thread.query(f"make_friends('{friends[0]}', '{friends[1]}').")
         if are_friends_now:
             display_success_message(" Residents _name_ and _name_ are friends now!", friends)
+        # if args was incorrect (one person tried to be friends with himself)
         else:
             display_error_message("Something went wrong. Residents _name_ and _name_ are not friends.", friends)
 
 
+# function for finding residents by [age | name | gender] criteria
 def get_residents_by(prolog_thread, command):
     criteria = command.split(" ")[2:]
     valid_criteria = {'age', 'gender', 'name'}
 
+    # check if the command args is correct
     if criteria[0] not in valid_criteria:
         unknown_command()
         return
@@ -241,6 +271,7 @@ def get_residents_by(prolog_thread, command):
         print_table(criteria, residents_list)
 
 
+# function for finding spouse of a specific resident
 def spouse_of(prolog_thread, command):
     person = command.split(" ")[-1] if len(command.split()) == 3 else False
     if prolog_thread.query(f"resident('{person}', _, _).") and person:
@@ -253,6 +284,7 @@ def spouse_of(prolog_thread, command):
         display_not_found_message(command)
 
 
+# function for listing all spouses in knowledge base
 def all_spouses(prolog_thread):
     spouses = prolog_thread.query(f"spouse_canon(X, Y).")
     print(f"{GREEN_SEPARATOR}\n {Style.BRIGHT}All spouses in Pelican Town:\n")
@@ -262,11 +294,13 @@ def all_spouses(prolog_thread):
     print(f"{GREEN_SEPARATOR}\n")
 
 
+# function for listing children of a specific resident
 def children_of(prolog_thread, command):
     person = command.split(" ")[-1] if len(command.split()) == 3 else False
-
+    # check if resident exists
     if prolog_thread.query(f"resident('{person}', _, _).") and person:
         children = prolog_thread.query(f"parents('{person}', Child).")
+        # check if resident has children
         if children:
             children_list = make_string(children, 'Child')
             display_success_message(f"_name_ has children: _name_.", [person, children_list])
@@ -276,10 +310,13 @@ def children_of(prolog_thread, command):
         display_not_found_message(command)
 
 
+# function for listing parents of a specific resident
 def parents_of(prolog_thread, command):
     child = command.split(" ")[-1] if len(command.split()) == 3 else False
+    # check if resident exists
     if prolog_thread.query(f"resident('{child}', _, _).") and child:
         children = prolog_thread.query(f"children('{child}', Parent).")
+        # check if resident has parents
         if children:
             parents_list = make_string(children, 'Parent')
             display_success_message(f"_name_ is a child of _name_.", [child, parents_list])
@@ -289,6 +326,7 @@ def parents_of(prolog_thread, command):
         display_not_found_message(command)
 
 
+# function for listing siblings of a specific resident
 def siblings_of(prolog_thread, command):
     person = command.split(" ")[-1] if len(command.split()) == 3 else False
     if prolog_thread.query(f"resident('{person}', _, _).") and person:
@@ -300,27 +338,32 @@ def siblings_of(prolog_thread, command):
     else:
         display_not_found_message(command)
 
-# TO-DO they are not friends!!
+
+# function for recording gifts
 def gave_gift(prolog_thread, command):
+    # check if the command args is correct
     if len(command.split()) != 6:
         unknown_command()
         return False
 
     giver = command.split()[3]
     receiver = command.split()[5]
+    # check if residents different persons
     if giver == receiver:
         display_error_message(f"_name_ can't give a gift to himself.", [giver])
         return False
-
+    # check if residents exist
     if (prolog_thread.query(f"resident('{giver}', _, _).") and prolog_thread.query(f"resident('{receiver}', _, _).")):
         list_gifts(prolog_thread)
         print(f"{BLUE_SEPARATOR}")
         gift = input(" Choose the gift from the list above: ")
         print(f"{BLUE_SEPARATOR}\n")
+        # check if gift exists in the knowledge base
         if prolog_thread.query(f"gave_gift('{giver}', '{receiver}', '{gift}')."):
             friendship_level = prolog_thread.query(f"friendship_level('{giver}', '{receiver}', Level).")[0]
             friends_status = prolog_thread.query(
                 f"check_friendship_status('{giver}', '{receiver}',{friendship_level['Level']}).")
+            # check if residents are friends after gift giving
             if friends_status:
                 display_success_message(f"_name_ gave _name_ to _name_! Friendship level: _name_",
                                         [giver, gift, receiver, friendship_level['Level']])
@@ -346,6 +389,7 @@ commands = {
     'all spouses': all_spouses
 }
 
+# dictionary with compound commands
 compound_commands = {
     'friends of': list_friends_of,
     'make friends': make_friends,
