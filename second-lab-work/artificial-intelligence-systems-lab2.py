@@ -88,7 +88,6 @@ def unknown_command():
 # function for displaying table with residents
 def print_table(criteria, residents_list):
     criteria_name = criteria[0]
-    print(f"{GREEN_SEPARATOR}\n")
     criteria_argument = criteria[1]
     print(f" {HEADER_STYLE} Residents with {criteria_name} <{criteria_argument}>:\n"
           f" {HALF_GREEN_TABLE_SEPARATOR}\n {TABLE_HEADER}| {'ID':<2} | {criteria_name:<17} "
@@ -352,8 +351,15 @@ def gave_gift(prolog_thread, command):
     if giver == receiver:
         display_error_message(f"_name_ can't give a gift to himself.", [giver])
         return False
+
     # check if residents exist
     if (prolog_thread.query(f"resident('{giver}', _, _).") and prolog_thread.query(f"resident('{receiver}', _, _).")):
+
+        # check if residents are friends
+        if not (prolog_thread.query(f"friend('{giver}', '{receiver}').")):
+            display_warning_message(f"_name_ and _name_ are not friends. They can't exchange gifts.", [giver, receiver])
+            return False
+
         list_gifts(prolog_thread)
         print(f"{BLUE_SEPARATOR}")
         gift = input(" Choose the gift from the list above: ")
@@ -426,8 +432,8 @@ with (PrologMQI() as mqi):
         greeting()
         command = ''
         while command != 'exit':
-            print(Fore.MAGENTA + SEPARATOR)
+            print(Fore.LIGHTWHITE_EX + SEPARATOR)
             command = input(" Enter your command: ")
-            print(Fore.MAGENTA + SEPARATOR, "\n")
+            print(Fore.LIGHTWHITE_EX + SEPARATOR, "\n")
             if not command_handler(prolog_thread, command):
                 exit(0)

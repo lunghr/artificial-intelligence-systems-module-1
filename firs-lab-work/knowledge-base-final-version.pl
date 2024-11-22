@@ -136,6 +136,8 @@ make_friends(Person1, Person2) :-
     % else: write new facts: friend(X, Y) & friend(Y, X)
     ;   assertz(friend(Person1, Person2)),
         assertz(friend(Person2, Person1)),
+        assertz(friendship_level(Person1, Person2, 0)),
+        assertz(friendship_level(Person2, Person1, 0)),
         write(Person1), write(' и '), write(Person2), write(' теперь друзья!'), nl
     ).
 
