@@ -432,34 +432,6 @@ print_all_friends([Person | Rest]) :-
 
 ## Онтология в Protege
 
-### **Классы**
-
-![image.png](assets/image.png)
-
-### **Сущности класса (факты с одним аргументом)**
-
-1. Bachelors
-
-   ![image.png](assets/image_1.png)
-
-2. Bachelorettes
-
-   ![image.png](assets/image_2.png)
-
-3. Married
-
-   ![image.png](assets/image_3.png)
-
-4. Child
-
-   ![image.png](assets/image_4.png)
-
-### Свойства объектов (правила)
-
-![image.png](assets/image_5.png)
-
-### Итоговый граф
-
 ![image.png](assets/image_6.png)
 
 ![image.png](assets/image_7.png)
